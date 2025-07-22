@@ -24,6 +24,11 @@ mqttClient.on('connect', () => {
       console.log('Subscribed to pneu/pressure topic');
     }
   });
+  mqttClient.subscribe('pneu/flowrate', (err) => {
+    if (!err) {
+      console.log('Subscribed to pneu/flowrate topic');
+    }
+  });
 });
 
 mqttClient.on('message', (topic, message) => {
@@ -31,6 +36,8 @@ mqttClient.on('message', (topic, message) => {
   console.log(`Received message on topic ${topic}: ${message.toString()}`);
   if (topic === 'pneu/pressure') {
     io.emit('pressureUpdate', message.toString()); // Emit to all connected clients
+  } else if (topic === 'pneu/flowrate') {
+    io.emit('flowrateUpdate', message.toString()); // Emit to all connected clients
   }
 });
 
