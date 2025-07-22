@@ -36,6 +36,15 @@ socket.on('flowrateUpdate', (flowrate) => {
     }
 });
 
+// Socket.IO event listener for exhaust temperature updates
+socket.on('exhaustTemperatureUpdate', (temperature) => {
+    const tempValueElement = document.getElementById('temp-value');
+    if (tempValueElement) {
+        tempValueElement.textContent = parseFloat(temperature).toFixed(2);
+        updateNeedle('temp-needle', parseFloat(temperature), 120, 90); // Max 120°C, 90 degree offset for 0 at left
+    }
+});
+
 // Simulate random data changes (modified to not update pressure)
 function simulateData() {
     // Flow (0-50 GPM) - Removed as it's now handled by Socket.IO
@@ -44,11 +53,11 @@ function simulateData() {
     // const flowAngle = (flow / 50) * 180 - 90;
     // document.getElementById('flow-needle').style.transform = `translateX(-50%) rotate(${flowAngle}deg)`;
     
-    // Temperature (0-120°C)
-    const temp = 30 + Math.random() * 60;
-    document.getElementById('temp-value').textContent = temp.toFixed(0);
-    const tempAngle = (temp / 120) * 180 - 90;
-    document.getElementById('temp-needle').style.transform = `translateX(-50%) rotate(${tempAngle}deg)`;
+    // Temperature (0-120°C) - Removed as it's now handled by Socket.IO
+    // const temp = 30 + Math.random() * 60;
+    // document.getElementById('temp-value').textContent = temp.toFixed(0);
+    // const tempAngle = (temp / 120) * 180 - 90;
+    // document.getElementById('temp-needle').style.transform = `translateX(-50%) rotate(${tempAngle}deg)`;
     
     // Vibration
     const vibration = (Math.random() * 5).toFixed(2);
