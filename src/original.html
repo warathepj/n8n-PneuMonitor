@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pneumatic Pump Control - 80s Fighter Cockpit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #0a0a12;
+            color: #00ff41;
+            overflow-x: hidden;
+        }
+        
+        .dashboard {
+            background: linear-gradient(135deg, #121a2a 0%, #0a0a12 100%);
+            border: 2px solid #2a4a7a;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        
+        .gauge-container {
+            background: rgba(10, 20, 30, 0.7);
+            border: 1px solid #2a4a7a;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gauge-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff41, transparent);
+            animation: scanline 3s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        .needle {
+            position: absolute;
+            width: 2px;
+            height: 50%;
+            background: #ff0000;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 1.5s ease-out;
+            z-index: 10;
+        }
+        
+        .needle::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff0000;
+            border-radius: 50%;
+            bottom: -5px;
+            left: -4px;
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
+        }
+        
+        .alert {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+        
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+        
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div class="grid-overlay"></div>
+    
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6 px-4 py-3 dashboard rounded-lg">
+            <h1 class="text-3xl font-bold glow-text">PNEUMATIC PUMP CONTROL SYSTEMS</h1>
+            <div class="flex items-center">
+                <div class="mr-4">
+                    <span class="status-light bg-green-500"></span>
+                    <span class="text-sm">SYSTEM ONLINE</span>
+                </div>
+                <div class="text-2xl glow-text">
+                    <span id="time">00:00:00</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Dashboard -->
+        <div class="dashboard rounded-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Pressure Gauge -->
+                <div class="gauge-container rounded-lg p-4 relative">
+                    <h3 class="text-xl mb-4 glow-text text-center">PRESSURE</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>0 PSI</span>
+                        <span>150 PSI</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 border-r-green-500" style="clip-path: polygon(0 0, 100% 0, 100% 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-r-yellow-500 border-b-yellow-500" style="clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-b-red-500 border-l-red-500" style="clip-path: polygon(100% 100%, 0 100%, 0 0);"></div>
+                        <div id="pressure-needle" class="needle"></div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span id="pressure-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">PSI</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | SYSTEM PRESSURE</div>
+                </div>
+                
+                <!-- Flow Gauge -->
+                <div class="gauge-container rounded-lg p-4 relative">
+                    <h3 class="text-xl mb-4 glow-text text-center">FLOW RATE</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>0 GPM</span>
+                        <span>50 GPM</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 border-r-green-500" style="clip-path: polygon(0 0, 100% 0, 100% 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-r-yellow-500 border-b-yellow-500" style="clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-b-red-500 border-l-red-500" style="clip-path: polygon(100% 100%, 0 100%, 0 0);"></div>
+                        <div id="flow-needle" class="needle"></div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span id="flow-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">GPM</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | FLOW RATE</div>
+                </div>
+                
+                <!-- Temperature Gauge -->
+                <div class="gauge-container rounded-lg p-4 relative">
+                    <h3 class="text-xl mb-4 glow-text text-center">TEMPERATURE</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>0°C</span>
+                        <span>120°C</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 border-r-green-500" style="clip-path: polygon(0 0, 100% 0, 100% 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-r-yellow-500 border-b-yellow-500" style="clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-b-red-500 border-l-red-500" style="clip-path: polygon(100% 100%, 0 100%, 0 0);"></div>
+                        <div id="temp-needle" class="needle"></div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span id="temp-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">°C</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | MOTOR TEMP</div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Vibration Meter -->
+                <div class="gauge-container rounded-lg p-4">
+                    <h3 class="text-xl mb-4 glow-text text-center">VIBRATION</h3>
+                    <canvas id="vibration-chart" height="200"></canvas>
+                    <div class="text-center mt-2">
+                        <span id="vibration-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">mm/s</span>
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <span class="text-xs text-green-400">NORMAL</span>
+                        <span class="text-xs text-yellow-400">WARNING</span>
+                        <span class="text-xs text-red-400">DANGER</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | VIBRATION LEVEL</div>
+                </div>
+                
+                <!-- Humidity/Dew Point -->
+                <div class="gauge-container rounded-lg p-4">
+                    <h3 class="text-xl mb-4 glow-text text-center">HUMIDITY/DEW POINT</h3>
+                    <div class="flex justify-around mb-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold" id="humidity-value">0</div>
+                            <div class="text-sm">% RH</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold" id="dewpoint-value">0</div>
+                            <div class="text-sm">°C DP</div>
+                        </div>
+                    </div>
+                    <div class="h-32 relative">
+                        <div class="absolute bottom-0 left-0 right-0 bg-blue-900 opacity-30" id="humidity-bar" style="height: 0%;"></div>
+                        <div class="absolute bottom-0 left-0 right-0 flex items-end">
+                            <div class="h-full w-1/2 border-r border-gray-600 flex items-end justify-center">
+                                <div class="w-full bg-green-500 opacity-70" id="humidity-fill" style="height: 0%;"></div>
+                            </div>
+                            <div class="h-full w-1/2 flex items-end justify-center">
+                                <div class="w-full bg-blue-500 opacity-70" id="dewpoint-fill" style="height: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">AMBIENT CONDITIONS</div>
+                </div>
+                
+                <!-- Current/Power -->
+                <div class="gauge-container rounded-lg p-4">
+                    <h3 class="text-xl mb-4 glow-text text-center">POWER METRICS</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold" id="current-value">0.0</div>
+                            <div class="text-sm">AMPS</div>
+                            <div class="h-20 mt-2 relative">
+                                <div class="absolute bottom-0 left-0 right-0 bg-gray-800 rounded">
+                                    <div class="bg-yellow-500 rounded" id="current-bar" style="height: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold" id="power-value">0.0</div>
+                            <div class="text-sm">kW</div>
+                            <div class="h-20 mt-2 relative">
+                                <div class="absolute bottom-0 left-0 right-0 bg-gray-800 rounded">
+                                    <div class="bg-red-500 rounded" id="power-bar" style="height: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-4">
+                        <div>
+                            <span class="status-light bg-green-500"></span>
+                            <span class="text-sm">POWER ON</span>
+                        </div>
+                        <div>
+                            <span id="efficiency-value" class="text-sm">EFF: 0%</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | ELECTRICAL</div>
+                </div>
+            </div>
+            
+            <!-- System Status -->
+            <div class="gauge-container rounded-lg p-4">
+                <h3 class="text-xl mb-4 glow-text text-center">SYSTEM STATUS</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">PUMP STATUS</div>
+                        <div class="text-green-500 font-bold">OPERATIONAL</div>
+                    </div>
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">PRESSURE STATUS</div>
+                        <div class="text-green-500 font-bold">NORMAL</div>
+                    </div>
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">TEMPERATURE</div>
+                        <div class="text-green-500 font-bold">WITHIN RANGE</div>
+                    </div>
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">SYSTEM ALERTS</div>
+                        <div class="text-green-500 font-bold">NONE</div>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-center">
+                    <button class="bg-red-900 hover:bg-red-700 text-white py-2 px-6 rounded-lg mr-4 border border-red-700">
+                        EMERGENCY STOP
+                    </button>
+                    <button class="bg-blue-900 hover:bg-blue-700 text-white py-2 px-6 rounded-lg border border-blue-700">
+                        SYSTEM DIAGNOSTICS
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="text-center text-xs text-gray-500 mb-4">
+            INDUSTRIAL PNEUMATIC SYSTEMS v4.2.1 | © 1987 CYBERDYNE SYSTEMS
+        </footer>
+    </div>
+
+    <script>
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+            document.getElementById('time').textContent = time;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        // Simulate random data changes
+        function simulateData() {
+            // Pressure (0-150 PSI)
+            const pressure = 50 + Math.random() * 80;
+            document.getElementById('pressure-value').textContent = pressure.toFixed(0);
+            const pressureAngle = (pressure / 150) * 180 - 90;
+            document.getElementById('pressure-needle').style.transform = `translateX(-50%) rotate(${pressureAngle}deg)`;
+            
+            // Flow (0-50 GPM)
+            const flow = 10 + Math.random() * 30;
+            document.getElementById('flow-value').textContent = flow.toFixed(0);
+            const flowAngle = (flow / 50) * 180 - 90;
+            document.getElementById('flow-needle').style.transform = `translateX(-50%) rotate(${flowAngle}deg)`;
+            
+            // Temperature (0-120°C)
+            const temp = 30 + Math.random() * 60;
+            document.getElementById('temp-value').textContent = temp.toFixed(0);
+            const tempAngle = (temp / 120) * 180 - 90;
+            document.getElementById('temp-needle').style.transform = `translateX(-50%) rotate(${tempAngle}deg)`;
+            
+            // Vibration
+            const vibration = (Math.random() * 5).toFixed(2);
+            document.getElementById('vibration-value').textContent = vibration;
+            updateVibrationChart(vibration);
+            
+            // Humidity (30-80%)
+            const humidity = (40 + Math.random() * 40).toFixed(0);
+            document.getElementById('humidity-value').textContent = humidity;
+            document.getElementById('humidity-bar').style.height = `${humidity}%`;
+            document.getElementById('humidity-fill').style.height = `${humidity}%`;
+            
+            // Dew Point (10-30°C)
+            const dewpoint = (10 + Math.random() * 20).toFixed(0);
+            document.getElementById('dewpoint-value').textContent = dewpoint;
+            document.getElementById('dewpoint-fill').style.height = `${(dewpoint / 30) * 100}%`;
+            
+            // Current (5-15A)
+            const current = (5 + Math.random() * 10).toFixed(1);
+            document.getElementById('current-value').textContent = current;
+            document.getElementById('current-bar').style.height = `${(current / 15) * 100}%`;
+            
+            // Power (1-10kW)
+            const power = (1 + Math.random() * 9).toFixed(1);
+            document.getElementById('power-value').textContent = power;
+            document.getElementById('power-bar').style.height = `${(power / 10) * 100}%`;
+            
+            // Efficiency (60-95%)
+            const efficiency = (60 + Math.random() * 35).toFixed(0);
+            document.getElementById('efficiency-value').textContent = `EFF: ${efficiency}%`;
+            
+            // Random alerts
+            if (Math.random() > 0.95) {
+                triggerRandomAlert();
+            }
+        }
+        
+        // Initialize vibration chart
+        let vibrationChart;
+        function initVibrationChart() {
+            const ctx = document.getElementById('vibration-chart').getContext('2d');
+            vibrationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        data: Array(20).fill(0),
+                        borderColor: '#00ff41',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1,
+                        fill: {
+                            target: 'origin',
+                            above: 'rgba(0, 255, 65, 0.1)'
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 5,
+                            grid: {
+                                color: 'rgba(0, 255, 65, 0.1)'
+                            },
+                            ticks: {
+                                color: '#00ff41'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update vibration chart
+        function updateVibrationChart(value) {
+            const data = vibrationChart.data.datasets[0].data;
+            data.shift();
+            data.push(value);
+            vibrationChart.update();
+            
+            // Change line color based on value
+            if (value > 3.5) {
+                vibrationChart.data.datasets[0].borderColor = '#ff0000';
+                vibrationChart.data.datasets[0].fill.above = 'rgba(255, 0, 0, 0.1)';
+            } else if (value > 2.5) {
+                vibrationChart.data.datasets[0].borderColor = '#ffff00';
+                vibrationChart.data.datasets[0].fill.above = 'rgba(255, 255, 0, 0.1)';
+            } else {
+                vibrationChart.data.datasets[0].borderColor = '#00ff41';
+                vibrationChart.data.datasets[0].fill.above = 'rgba(0, 255, 65, 0.1)';
+            }
+            vibrationChart.update();
+        }
+        
+        // Trigger random alert
+        function triggerRandomAlert() {
+            const alerts = [
+                "PRESSURE FLUCTUATION DETECTED",
+                "TEMPERATURE RISING",
+                "VIBRATION LEVEL HIGH",
+                "FLOW RATE UNSTABLE",
+                "MOTOR CURRENT SPIKE"
+            ];
+            const alertElement = document.createElement('div');
+            alertElement.className = 'alert bg-red-900 text-white p-3 mb-2 rounded text-center glow-text';
+            alertElement.textContent = `WARNING: ${alerts[Math.floor(Math.random() * alerts.length)]}`;
+            
+            const systemStatus = document.querySelector('.gauge-container:last-child');
+            systemStatus.insertBefore(alertElement, systemStatus.firstChild);
+            
+            // Change status to warning
+            const statusDivs = systemStatus.querySelectorAll('.text-green-500');
+            statusDivs.forEach(div => {
+                if (Math.random() > 0.5) {
+                    div.textContent = "WARNING";
+                    div.className = "text-yellow-500 font-bold";
+                }
+            });
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                alertElement.remove();
+                statusDivs.forEach(div => {
+                    div.textContent = div.textContent.includes("STATUS") ? "OPERATIONAL" : 
+                                      div.textContent.includes("PRESSURE") ? "NORMAL" :
+                                      div.textContent.includes("TEMPERATURE") ? "WITHIN RANGE" : "NONE";
+                    div.className = "text-green-500 font-bold";
+                });
+            }, 5000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initVibrationChart();
+            setInterval(simulateData, 2000);
+            simulateData();
+        });
+    </script>
+</body>
+</html>

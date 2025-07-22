@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pneumatic Pump Control - 80s Fighter Cockpit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen p-4">
+    <div class="grid-overlay"></div>
+    
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6 px-4 py-3 dashboard rounded-lg">
+            <h1 class="text-3xl font-bold glow-text">PNEUMATIC PUMP CONTROL SYSTEMS</h1>
+            <div class="flex items-center">
+                <div class="mr-4">
+                    <span class="status-light bg-green-500"></span>
+                    <span class="text-sm">SYSTEM ONLINE</span>
+                </div>
+                <div class="text-2xl glow-text">
+                    <span id="time">00:00:00</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Dashboard -->
+        <div class="dashboard rounded-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Pressure Gauge -->
+                <div class="gauge-container rounded-lg p-4 relative">
+                    <h3 class="text-xl mb-4 glow-text text-center">PRESSURE</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>0 PSI</span>
+                        <span>150 PSI</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 border-r-green-500" style="clip-path: polygon(0 0, 100% 0, 100% 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-r-yellow-500 border-b-yellow-500" style="clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+                        <div id="pressure-needle" class="needle"></div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span id="pressure-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">PSI</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | SYSTEM PRESSURE</div>
+                </div>
+                
+                <!-- Flow Gauge -->
+                <div class="gauge-container rounded-lg p-4 relative">
+                    <h3 class="text-xl mb-4 glow-text text-center">FLOW RATE</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>0 GPM</span>
+                        <span>50 GPM</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 border-r-green-500" style="clip-path: polygon(0 0, 100% 0, 100% 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-r-yellow-500 border-b-yellow-500" style="clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+                        <div id="flow-needle" class="needle"></div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span id="flow-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">GPM</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | FLOW RATE</div>
+                </div>
+                
+                <!-- Temperature Gauge -->
+                <div class="gauge-container rounded-lg p-4 relative">
+                    <h3 class="text-xl mb-4 glow-text text-center">TEMPERATURE</h3>
+                    <div class="flex justify-between mb-2">
+                        <span>0°C</span>
+                        <span>120°C</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <div class="absolute inset-0 rounded-full border-4 border-gray-700"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-green-500 border-r-green-500" style="clip-path: polygon(0 0, 100% 0, 100% 100%);"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-r-yellow-500 border-b-yellow-500" style="clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+                        <div id="temp-needle" class="needle"></div>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span id="temp-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">°C</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | MOTOR TEMP</div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Vibration Meter -->
+                <div class="gauge-container rounded-lg p-4">
+                    <h3 class="text-xl mb-4 glow-text text-center">VIBRATION</h3>
+                    <!-- <canvas id="vibration-chart" height="200"></canvas> -->
+                    <div class="text-center mt-2">
+                        <span id="vibration-value" class="text-2xl font-bold">0</span>
+                        <span class="text-lg">mm/s</span>
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <span class="text-xs text-green-400">NORMAL</span>
+                        <span class="text-xs text-yellow-400">WARNING</span>
+                        <span class="text-xs text-red-400">DANGER</span>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | VIBRATION LEVEL</div>
+                </div>
+                
+                <!-- Humidity/Dew Point -->
+                <div class="gauge-container rounded-lg p-4">
+                    <h3 class="text-xl mb-4 glow-text text-center">HUMIDITY/DEW POINT</h3>
+                    <div class="flex justify-around mb-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold" id="humidity-value">0</div>
+                            <div class="text-sm">% RH</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold" id="dewpoint-value">0</div>
+                            <div class="text-sm">°C DP</div>
+                        </div>
+                    </div>
+                    <div class="h-32 relative">
+                        <div class="absolute bottom-0 left-0 right-0 bg-blue-900 opacity-30" id="humidity-bar" style="height: 0%;"></div>
+                        <div class="absolute bottom-0 left-0 right-0 flex items-end">
+                            <div class="h-full w-1/2 border-r border-gray-600 flex items-end justify-center">
+                                <div class="w-full bg-green-500 opacity-70" id="humidity-fill" style="height: 0%;"></div>
+                            </div>
+                            <div class="h-full w-1/2 flex items-end justify-center">
+                                <div class="w-full bg-blue-500 opacity-70" id="dewpoint-fill" style="height: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">AMBIENT CONDITIONS</div>
+                </div>
+                
+                <!-- Current/Power -->
+                <div class="gauge-container rounded-lg p-4">
+                    <h3 class="text-xl mb-4 glow-text text-center">POWER METRICS</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold" id="current-value">0.0</div>
+                            <div class="text-sm">AMPS</div>
+                            <div class="h-20 mt-2 relative">
+                                <div class="absolute bottom-0 left-0 right-0 bg-gray-800 rounded">
+                                    <div class="bg-yellow-500 rounded" id="current-bar" style="height: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold" id="power-value">0.0</div>
+                            <div class="text-sm">kW</div>
+                            <div class="h-20 mt-2 relative">
+                                <div class="absolute bottom-0 left-0 right-0 bg-gray-800 rounded">
+                                    <div class="bg-red-500 rounded" id="power-bar" style="height: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-4">
+                        <div>
+                            <span class="status-light bg-green-500"></span>
+                            <span class="text-sm">POWER ON</span>
+                        </div>
+                        <div>
+                            <span id="efficiency-value" class="text-sm">EFF: 0%</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-center mt-2 text-gray-400">PUMP #1 | ELECTRICAL</div>
+                </div>
+            </div>
+            
+            <!-- System Status -->
+            <div class="gauge-container rounded-lg p-4">
+                <h3 class="text-xl mb-4 glow-text text-center">SYSTEM STATUS</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">PUMP STATUS</div>
+                        <div class="text-green-500 font-bold">OPERATIONAL</div>
+                    </div>
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">PRESSURE STATUS</div>
+                        <div class="text-green-500 font-bold">NORMAL</div>
+                    </div>
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">TEMPERATURE</div>
+                        <div class="text-green-500 font-bold">WITHIN RANGE</div>
+                    </div>
+                    <div class="text-center p-2 border border-gray-700 rounded">
+                        <div class="text-sm mb-1">SYSTEM ALERTS</div>
+                        <div class="text-green-500 font-bold">NONE</div>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-center">
+                    <button class="bg-red-900 hover:bg-red-700 text-white py-2 px-6 rounded-lg mr-4 border border-red-700">
+                        EMERGENCY STOP
+                    </button>
+                    <button class="bg-blue-900 hover:bg-blue-700 text-white py-2 px-6 rounded-lg border border-blue-700">
+                        SYSTEM DIAGNOSTICS
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="text-center text-xs text-gray-500 mb-4">
+            INDUSTRIAL PNEUMATIC SYSTEMS v4.2.1 | © 1987 CYBERDYNE SYSTEMS
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
