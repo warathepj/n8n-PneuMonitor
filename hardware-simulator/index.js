@@ -22,10 +22,17 @@ function generateRandomFlowRate() {
   return (Math.random() * (maxFlowRate - minFlowRate) + minFlowRate).toFixed(2);
 }
 
+function generateRandomExhaustTemperature() {
+  const minTemp = 100;
+  const maxTemp = 125;
+  return Math.floor(Math.random() * (maxTemp - minTemp + 1)) + minTemp;
+}
+
 // Simulate pneumatic pump pressure and flow rate every 8 seconds
 setInterval(() => {
   const pressure = generateRandomPressure();
   const flowRate = generateRandomFlowRate();
+  const exhaustTemperature = generateRandomExhaustTemperature();
 
   const pressureTopic = 'pneu/pressure';
   const pressureMessage = pressure.toString();
@@ -46,6 +53,17 @@ setInterval(() => {
       console.error('Failed to publish flow rate message:', err);
     } else {
       console.log(`Published ${flowRateMessage} to ${flowRateTopic}`);
+    }
+  });
+
+  const exhaustTemperatureTopic = 'pneu/exhaust_temperature';
+  const exhaustTemperatureMessage = exhaustTemperature.toString();
+
+  client.publish(exhaustTemperatureTopic, exhaustTemperatureMessage, (err) => {
+    if (err) {
+      console.error('Failed to publish exhaust temperature message:', err);
+    } else {
+      console.log(`Published ${exhaustTemperatureMessage} to ${exhaustTemperatureTopic}`);
     }
   });
 }, 8000);
