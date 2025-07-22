@@ -45,6 +45,14 @@ socket.on('exhaustTemperatureUpdate', (temperature) => {
     }
 });
 
+// Socket.IO event listener for rmsVelocity updates
+socket.on('rmsVelocityUpdate', (rmsVelocity) => {
+    const vibrationValueElement = document.getElementById('vibration-value');
+    if (vibrationValueElement) {
+        vibrationValueElement.textContent = parseFloat(rmsVelocity).toFixed(2);
+    }
+});
+
 // Simulate random data changes (modified to not update pressure)
 function simulateData() {
     // Flow (0-50 GPM) - Removed as it's now handled by Socket.IO
@@ -59,9 +67,9 @@ function simulateData() {
     // const tempAngle = (temp / 120) * 180 - 90;
     // document.getElementById('temp-needle').style.transform = `translateX(-50%) rotate(${tempAngle}deg)`;
     
-    // Vibration
-    const vibration = (Math.random() * 5).toFixed(2);
-    document.getElementById('vibration-value').textContent = vibration;
+    // Vibration - Removed as it's now handled by Socket.IO
+    // const vibration = (Math.random() * 5).toFixed(2);
+    // document.getElementById('vibration-value').textContent = vibration;
     // updateVibrationChart(vibration); // Re-enable if chart is used
     
     // Humidity (30-80%)
@@ -92,58 +100,6 @@ function simulateData() {
     // Trigger alert every minute
     triggerRandomAlert();
 }
-
-// Initialize vibration chart
-// let vibrationChart;
-// function initVibrationChart() {
-//     const ctx = document.getElementById('vibration-chart').getContext('2d');
-//     vibrationChart = new Chart(ctx, {
-//         type: 'line',
-//         data: {
-//             labels: Array(20).fill(''),
-//             datasets: [{
-//                 data: Array(20).fill(0),
-//                 borderColor: '#00ff41',
-//                 borderWidth: 2,
-//                 pointRadius: 0,
-//                 tension: 0.1,
-//                 fill: {
-//                     target: 'origin',
-//                     above: 'rgba(0, 255, 65, 0.1)'
-//                 }
-//             }]
-//         },
-//         options: {
-//             responsive: true,
-//             maintainAspectRatio: false,
-//             scales: {
-//                 y: {
-//                     min: 0,
-//                     max: 5,
-//                     grid: {
-//                         color: 'rgba(0, 255, 65, 0.1)'
-//                     },
-//                     ticks: {
-//                         color: '#00ff41'
-//                     }
-//                 },
-//                 x: {
-//                     grid: {
-//                         display: false
-//                     },
-//                     ticks: {
-//                         display: false
-//                     }
-//                 }
-//             },
-//             plugins: {
-//                 legend: {
-//                     display: false
-//                 }
-//             }
-//         }
-//     });
-// }
 
 // Update vibration chart
 function updateVibrationChart(value) {
@@ -205,7 +161,7 @@ function triggerRandomAlert() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    initVibrationChart();
+    // initVibrationChart(); // User requested not to use this
     setInterval(simulateData, 60000);
     simulateData();
 });
