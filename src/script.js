@@ -27,13 +27,22 @@ socket.on('pressureUpdate', (pressure) => {
     }
 });
 
+// Socket.IO event listener for flowrate updates
+socket.on('flowrateUpdate', (flowrate) => {
+    const flowValueElement = document.getElementById('flow-value');
+    if (flowValueElement) {
+        flowValueElement.textContent = parseFloat(flowrate).toFixed(0);
+        updateNeedle('flow-needle', parseFloat(flowrate), 50, 90); // Max 50 GPM, 90 degree offset for 0 at left
+    }
+});
+
 // Simulate random data changes (modified to not update pressure)
 function simulateData() {
-    // Flow (0-50 GPM)
-    const flow = 10 + Math.random() * 30;
-    document.getElementById('flow-value').textContent = flow.toFixed(0);
-    const flowAngle = (flow / 50) * 180 - 90;
-    document.getElementById('flow-needle').style.transform = `translateX(-50%) rotate(${flowAngle}deg)`;
+    // Flow (0-50 GPM) - Removed as it's now handled by Socket.IO
+    // const flow = 10 + Math.random() * 30;
+    // document.getElementById('flow-value').textContent = flow.toFixed(0);
+    // const flowAngle = (flow / 50) * 180 - 90;
+    // document.getElementById('flow-needle').style.transform = `translateX(-50%) rotate(${flowAngle}deg)`;
     
     // Temperature (0-120°C)
     const temp = 30 + Math.random() * 60;
