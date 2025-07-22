@@ -31,8 +31,8 @@ socket.on('pressureUpdate', (pressure) => {
 socket.on('flowrateUpdate', (flowrate) => {
     const flowValueElement = document.getElementById('flow-value');
     if (flowValueElement) {
-        flowValueElement.textContent = parseFloat(flowrate).toFixed(0);
-        updateNeedle('flow-needle', parseFloat(flowrate), 50, 90); // Max 50 GPM, 90 degree offset for 0 at left
+        flowValueElement.textContent = parseFloat(flowrate).toFixed(2);
+        updateNeedle('flow-needle', parseFloat(flowrate), 3.1, 90); // Max 3.1 CBM/MIN, 90 degree offset for 0 at left
     }
 });
 
