@@ -28,11 +28,18 @@ function generateRandomExhaustTemperature() {
   return Math.floor(Math.random() * (maxTemp - minTemp + 1)) + minTemp;
 }
 
+function generateRandomRMSVelocity() {
+  const minVelocity = 1.0;
+  const maxVelocity = 9.0;
+  return (Math.random() * (maxVelocity - minVelocity) + minVelocity).toFixed(2);
+}
+
 // Simulate pneumatic pump pressure and flow rate every 8 seconds
 setInterval(() => {
   const pressure = generateRandomPressure();
   const flowRate = generateRandomFlowRate();
   const exhaustTemperature = generateRandomExhaustTemperature();
+  const rmsVelocity = generateRandomRMSVelocity();
 
   const pressureTopic = 'pneu/pressure';
   const pressureMessage = pressure.toString();
@@ -64,6 +71,17 @@ setInterval(() => {
       console.error('Failed to publish exhaust temperature message:', err);
     } else {
       console.log(`Published ${exhaustTemperatureMessage} to ${exhaustTemperatureTopic}`);
+    }
+  });
+
+  const rmsVelocityTopic = 'pneu/rms_velocity';
+  const rmsVelocityMessage = rmsVelocity.toString();
+
+  client.publish(rmsVelocityTopic, rmsVelocityMessage, (err) => {
+    if (err) {
+      console.error('Failed to publish RMS velocity message:', err);
+    } else {
+      console.log(`Published ${rmsVelocityMessage} to ${rmsVelocityTopic}`);
     }
   });
 }, 8000);
