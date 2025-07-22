@@ -1,3 +1,5 @@
+const socket = io();
+
 // Update clock
 function updateClock() {
     const now = new Date();
@@ -7,14 +9,26 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Simulate random data changes
+// Function to update gauge needle rotation
+function updateNeedle(needleId, value, maxValue, offsetDegrees) {
+    const needle = document.getElementById(needleId);
+    if (needle) {
+        const rotation = (value / maxValue) * 180 - offsetDegrees; // 180 degrees for half circle, adjust offset
+        needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+    }
+}
+
+// Socket.IO event listener for pressure updates
+socket.on('pressureUpdate', (pressure) => {
+    const pressureValueElement = document.getElementById('pressure-value');
+    if (pressureValueElement) {
+        pressureValueElement.textContent = parseFloat(pressure).toFixed(2);
+        updateNeedle('pressure-needle', parseFloat(pressure), 150, 90); // Max 150 PSI, 90 degree offset for 0 at left
+    }
+});
+
+// Simulate random data changes (modified to not update pressure)
 function simulateData() {
-    // Pressure (0-150 PSI)
-    const pressure = 50 + Math.random() * 80;
-    document.getElementById('pressure-value').textContent = pressure.toFixed(0);
-    const pressureAngle = (pressure / 150) * 180 - 90;
-    document.getElementById('pressure-needle').style.transform = `translateX(-50%) rotate(${pressureAngle}deg)`;
-    
     // Flow (0-50 GPM)
     const flow = 10 + Math.random() * 30;
     document.getElementById('flow-value').textContent = flow.toFixed(0);
@@ -30,7 +44,7 @@ function simulateData() {
     // Vibration
     const vibration = (Math.random() * 5).toFixed(2);
     document.getElementById('vibration-value').textContent = vibration;
-    updateVibrationChart(vibration);
+    // updateVibrationChart(vibration); // Re-enable if chart is used
     
     // Humidity (30-80%)
     const humidity = (40 + Math.random() * 40).toFixed(0);
