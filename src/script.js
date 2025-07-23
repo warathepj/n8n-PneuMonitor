@@ -76,6 +76,18 @@ socket.on('pressureDewPointUpdate', (value) => {
     }
 });
 
+// Socket.IO event listener for current updates
+socket.on('currentUpdate', (current) => {
+    const currentValueElement = document.getElementById('current-value');
+    const currentBar = document.getElementById('current-bar');
+    if (currentValueElement && currentBar) {
+        const currentVal = parseFloat(current);
+        currentValueElement.textContent = currentVal.toFixed(1);
+        // Use 44 as the max value for current based on user input
+        currentBar.style.height = `${(currentVal / 44) * 100}%`;
+    }
+});
+
 // Simulate random data changes (modified to not update pressure)
 function simulateData() {
     // Flow (0-50 GPM) - Removed as it's now handled by Socket.IO
@@ -106,10 +118,10 @@ function simulateData() {
     // document.getElementById('dewpoint-value').textContent = dewpoint;
     // document.getElementById('dewpoint-fill').style.height = `${(dewpoint / 30) * 100}%`;
     
-    // Current (5-15A)
-    const current = (5 + Math.random() * 10).toFixed(1);
-    document.getElementById('current-value').textContent = current;
-    document.getElementById('current-bar').style.height = `${(current / 15) * 100}%`;
+    // Current (5-15A) - REMOVED, now handled by Socket.IO
+    // const current = (5 + Math.random() * 10).toFixed(1);
+    // document.getElementById('current-value').textContent = current;
+    // document.getElementById('current-bar').style.height = `${(current / 15) * 100}%`;
     
     // Power (1-10kW)
     const power = (1 + Math.random() * 9).toFixed(1);
