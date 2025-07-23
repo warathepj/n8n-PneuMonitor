@@ -40,6 +40,12 @@ function generateRandomPressureDewPoint() {
   return Math.floor(Math.random() * (maxDewPoint - minDewPoint + 1)) + minDewPoint;
 }
 
+function generateRandomCurrent() {
+  const minCurrent = 38;
+  const maxCurrent = 44;
+  return (Math.random() * (maxCurrent - minCurrent) + minCurrent).toFixed(2);
+}
+
 // Simulate pneumatic pump pressure and flow rate every 8 seconds
 setInterval(() => {
   const pressure = generateRandomPressure();
@@ -47,6 +53,7 @@ setInterval(() => {
   const exhaustTemperature = generateRandomExhaustTemperature();
   const rmsVelocity = generateRandomRMSVelocity();
   const pressureDewPoint = generateRandomPressureDewPoint();
+  const current = generateRandomCurrent();
 
   const pressureTopic = 'pneu/pressure';
   const pressureMessage = pressure.toString();
@@ -100,6 +107,17 @@ setInterval(() => {
       console.error('Failed to publish pressure dew point message:', err);
     } else {
       console.log(`Published ${pressureDewPointMessage} to ${pressureDewPointTopic}`);
+    }
+  });
+
+  const currentTopic = 'pneu/current';
+  const currentMessage = current.toString();
+
+  client.publish(currentTopic, currentMessage, (err) => {
+    if (err) {
+      console.error('Failed to publish current message:', err);
+    } else {
+      console.log(`Published ${currentMessage} to ${currentTopic}`);
     }
   });
 }, 8000);
