@@ -19,34 +19,9 @@ const mqttClient = mqtt.connect('mqtt://localhost:1883'); // No credentials need
 
 mqttClient.on('connect', () => {
   console.log('Connected to MQTT broker');
-  mqttClient.subscribe('pneu/pressure', (err) => {
+  mqttClient.subscribe('pneu/data', (err) => {
     if (!err) {
-      console.log('Subscribed to pneu/pressure topic');
-    }
-  });
-  mqttClient.subscribe('pneu/flowrate', (err) => {
-    if (!err) {
-      console.log('Subscribed to pneu/flowrate topic');
-    }
-  });
-  mqttClient.subscribe('pneu/exhaust_temperature', (err) => { // New subscription
-    if (!err) {
-      console.log('Subscribed to pneu/exhaust_temperature topic');
-    }
-  });
-  mqttClient.subscribe('pneu/rms_velocity', (err) => {
-    if (!err) {
-      console.log('Subscribed to pneu/rms_velocity topic');
-    }
-  });
-  mqttClient.subscribe('pneu/pressure_dew_point', (err) => {
-    if (!err) {
-      console.log('Subscribed to pneu/pressure_dew_point topic');
-    }
-  });
-  mqttClient.subscribe('pneu/current', (err) => {
-    if (!err) {
-      console.log('Subscribed to pneu/current topic');
+      console.log('Subscribed to pneu/data topic');
     }
   });
 });
@@ -54,18 +29,18 @@ mqttClient.on('connect', () => {
 mqttClient.on('message', (topic, message) => {
   // message is Buffer
   console.log(`Received message on topic ${topic}: ${message.toString()}`);
-  if (topic === 'pneu/pressure') {
-    io.emit('pressureUpdate', message.toString()); // Emit to all connected clients
-  } else if (topic === 'pneu/flowrate') {
-    io.emit('flowrateUpdate', message.toString()); // Emit to all connected clients
-  } else if (topic === 'pneu/exhaust_temperature') { // New message handling
-    io.emit('exhaustTemperatureUpdate', message.toString()); // Emit to all connected clients
-  } else if (topic === 'pneu/rms_velocity') {
-    io.emit('rmsVelocityUpdate', message.toString()); // Emit to all connected clients
-  } else if (topic === 'pneu/pressure_dew_point') {
-    io.emit('pressureDewPointUpdate', message.toString()); // Emit to all connected clients
-  } else if (topic === 'pneu/current') {
-    io.emit('currentUpdate', message.toString()); // Emit to all connected clients
+  if (topic === 'pneu/data') {
+    try {
+      const data = JSON.parse(message.toString());
+      io.emit('pressureUpdate', data.pressure.toString());
+      io.emit('flowrateUpdate', data.flowRate.toString());
+      io.emit('exhaustTemperatureUpdate', data.exhaustTemperature.toString());
+      io.emit('rmsVelocityUpdate', data.rmsVelocity.toString());
+      io.emit('pressureDewPointUpdate', data.pressureDewPoint.toString());
+      io.emit('currentUpdate', data.current.toString());
+    } catch (e) {
+      console.error('Failed to parse JSON message:', e);
+    }
   }
 });
 
