@@ -34,12 +34,19 @@ function generateRandomRMSVelocity() {
   return (Math.random() * (maxVelocity - minVelocity) + minVelocity).toFixed(2);
 }
 
+function generateRandomPressureDewPoint() {
+  const minDewPoint = 0;
+  const maxDewPoint = 12;
+  return Math.floor(Math.random() * (maxDewPoint - minDewPoint + 1)) + minDewPoint;
+}
+
 // Simulate pneumatic pump pressure and flow rate every 8 seconds
 setInterval(() => {
   const pressure = generateRandomPressure();
   const flowRate = generateRandomFlowRate();
   const exhaustTemperature = generateRandomExhaustTemperature();
   const rmsVelocity = generateRandomRMSVelocity();
+  const pressureDewPoint = generateRandomPressureDewPoint();
 
   const pressureTopic = 'pneu/pressure';
   const pressureMessage = pressure.toString();
@@ -82,6 +89,17 @@ setInterval(() => {
       console.error('Failed to publish RMS velocity message:', err);
     } else {
       console.log(`Published ${rmsVelocityMessage} to ${rmsVelocityTopic}`);
+    }
+  });
+
+  const pressureDewPointTopic = 'pneu/pressure_dew_point';
+  const pressureDewPointMessage = pressureDewPoint.toString();
+
+  client.publish(pressureDewPointTopic, pressureDewPointMessage, (err) => {
+    if (err) {
+      console.error('Failed to publish pressure dew point message:', err);
+    } else {
+      console.log(`Published ${pressureDewPointMessage} to ${pressureDewPointTopic}`);
     }
   });
 }, 8000);
