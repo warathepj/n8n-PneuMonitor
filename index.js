@@ -44,6 +44,11 @@ mqttClient.on('connect', () => {
       console.log('Subscribed to pneu/pressure_dew_point topic');
     }
   });
+  mqttClient.subscribe('pneu/current', (err) => {
+    if (!err) {
+      console.log('Subscribed to pneu/current topic');
+    }
+  });
 });
 
 mqttClient.on('message', (topic, message) => {
@@ -59,6 +64,8 @@ mqttClient.on('message', (topic, message) => {
     io.emit('rmsVelocityUpdate', message.toString()); // Emit to all connected clients
   } else if (topic === 'pneu/pressure_dew_point') {
     io.emit('pressureDewPointUpdate', message.toString()); // Emit to all connected clients
+  } else if (topic === 'pneu/current') {
+    io.emit('currentUpdate', message.toString()); // Emit to all connected clients
   }
 });
 
