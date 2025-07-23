@@ -55,69 +55,23 @@ setInterval(() => {
   const pressureDewPoint = generateRandomPressureDewPoint();
   const current = generateRandomCurrent();
 
-  const pressureTopic = 'pneu/pressure';
-  const pressureMessage = pressure.toString();
+  const data = {
+    pressure: pressure,
+    flowRate: flowRate,
+    exhaustTemperature: exhaustTemperature,
+    rmsVelocity: rmsVelocity,
+    pressureDewPoint: pressureDewPoint,
+    current: current
+  };
 
-  const flowRateTopic = 'pneu/flowrate';
-  const flowRateMessage = flowRate.toString();
+  const topic = 'pneu/data';
+  const message = JSON.stringify(data);
 
-  client.publish(pressureTopic, pressureMessage, (err) => {
+  client.publish(topic, message, (err) => {
     if (err) {
-      console.error('Failed to publish pressure message:', err);
+      console.error('Failed to publish message:', err);
     } else {
-      console.log(`Published ${pressureMessage} to ${pressureTopic}`);
-    }
-  });
-
-  client.publish(flowRateTopic, flowRateMessage, (err) => {
-    if (err) {
-      console.error('Failed to publish flow rate message:', err);
-    } else {
-      console.log(`Published ${flowRateMessage} to ${flowRateTopic}`);
-    }
-  });
-
-  const exhaustTemperatureTopic = 'pneu/exhaust_temperature';
-  const exhaustTemperatureMessage = exhaustTemperature.toString();
-
-  client.publish(exhaustTemperatureTopic, exhaustTemperatureMessage, (err) => {
-    if (err) {
-      console.error('Failed to publish exhaust temperature message:', err);
-    } else {
-      console.log(`Published ${exhaustTemperatureMessage} to ${exhaustTemperatureTopic}`);
-    }
-  });
-
-  const rmsVelocityTopic = 'pneu/rms_velocity';
-  const rmsVelocityMessage = rmsVelocity.toString();
-
-  client.publish(rmsVelocityTopic, rmsVelocityMessage, (err) => {
-    if (err) {
-      console.error('Failed to publish RMS velocity message:', err);
-    } else {
-      console.log(`Published ${rmsVelocityMessage} to ${rmsVelocityTopic}`);
-    }
-  });
-
-  const pressureDewPointTopic = 'pneu/pressure_dew_point';
-  const pressureDewPointMessage = pressureDewPoint.toString();
-
-  client.publish(pressureDewPointTopic, pressureDewPointMessage, (err) => {
-    if (err) {
-      console.error('Failed to publish pressure dew point message:', err);
-    } else {
-      console.log(`Published ${pressureDewPointMessage} to ${pressureDewPointTopic}`);
-    }
-  });
-
-  const currentTopic = 'pneu/current';
-  const currentMessage = current.toString();
-
-  client.publish(currentTopic, currentMessage, (err) => {
-    if (err) {
-      console.error('Failed to publish current message:', err);
-    } else {
-      console.log(`Published ${currentMessage} to ${currentTopic}`);
+      console.log(`Published ${message} to ${topic}`);
     }
   });
 }, 8000);
