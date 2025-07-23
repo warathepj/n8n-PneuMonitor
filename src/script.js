@@ -80,11 +80,22 @@ socket.on('pressureDewPointUpdate', (value) => {
 socket.on('currentUpdate', (current) => {
     const currentValueElement = document.getElementById('current-value');
     const currentBar = document.getElementById('current-bar');
-    if (currentValueElement && currentBar) {
+    const powerValueElement = document.getElementById('power-value');
+    const powerBar = document.getElementById('power-bar');
+
+    if (currentValueElement && currentBar && powerValueElement && powerBar) {
         const currentVal = parseFloat(current);
         currentValueElement.textContent = currentVal.toFixed(1);
         // Use 44 as the max value for current based on user input
         currentBar.style.height = `${(currentVal / 44) * 100}%`;
+
+        // Calculate power for a 3-phase system (P = sqrt(3) * V * I * PF). Assuming PF = 1.
+        const voltage = 380; // Volts
+        const power = (Math.sqrt(3) * voltage * currentVal) / 1000; // Convert to kW
+
+        powerValueElement.textContent = power.toFixed(1);
+        // Use 10 kW as the max value for power based on the previous simulation range
+        powerBar.style.height = `${(power / 10) * 100}%`;
     }
 });
 
@@ -123,10 +134,10 @@ function simulateData() {
     // document.getElementById('current-value').textContent = current;
     // document.getElementById('current-bar').style.height = `${(current / 15) * 100}%`;
     
-    // Power (1-10kW)
-    const power = (1 + Math.random() * 9).toFixed(1);
-    document.getElementById('power-value').textContent = power;
-    document.getElementById('power-bar').style.height = `${(power / 10) * 100}%`;
+    // Power (1-10kW) - REMOVED, now handled by Socket.IO
+    // const power = (1 + Math.random() * 9).toFixed(1);
+    // document.getElementById('power-value').textContent = power;
+    // document.getElementById('power-bar').style.height = `${(power / 10) * 100}%`;
     
     // Efficiency (60-95%)
     const efficiency = (60 + Math.random() * 35).toFixed(0);
